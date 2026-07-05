@@ -1,0 +1,4 @@
+* text=auto eol=lf
+
+# Lockfile: generated (excluded from GitHub language stats), suppress diff noise
+bun.lock linguist-generated=true -diff
