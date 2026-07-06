@@ -2,7 +2,8 @@
 	"name": "server",
 	"private": true,
 	"scripts": {
-		"dev": "bun run --hot src/index.ts"
+		"dev": "bun run --hot src/index.ts",
+		"start": "bun run src/index.ts"
 	},
 	"dependencies": {
 		"engine-server": "workspace:*",

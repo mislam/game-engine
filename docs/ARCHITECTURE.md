@@ -116,7 +116,11 @@ Generic multiplayer server — no knowledge of any specific game.
   entity the sender doesn't own; otherwise apply via the ruleset's `reducer`, broadcast
 - On disconnect: apply `LEAVE`, broadcast
 - Single global room — all clients share one snapshot
-- `options: { port?: number; hostname?: string }` — default `3000` / `"0.0.0.0"` (LAN-accessible)
+- `options: { port?: number; hostname?: string; staticDir?: string }` — `port` defaults to
+  `process.env.PORT` (falling back to `3000`), `hostname` to `"0.0.0.0"` (LAN-accessible); when
+  `staticDir` is set, it's served for any non-`/ws` request (SPA fallback to its `index.html`) —
+  this is what lets one deployed service serve both the client and the API (see
+  [`DEPLOYMENT.md`](./DEPLOYMENT.md))
 
 ## `packages/engine-client-pixi`
 
@@ -160,7 +164,8 @@ Both are thin composition roots — the only files allowed to import a concrete 
 | Server → client (on connect) | `{ "type": "WELCOME", "entityId": "..." }`                                      |
 | Server → client (ongoing)    | Full `Snapshot` JSON (no `type` field)                                          |
 
-WebSocket: `ws://<host>:3000/ws`
+WebSocket: `ws://<host>:3000/ws` in dev, `wss://<host>/ws` (same origin as the page) in production
+— see [`DEPLOYMENT.md`](./DEPLOYMENT.md)
 
 ## Explicitly out of scope (for now)
 
@@ -170,7 +175,6 @@ WebSocket: `ws://<host>:3000/ws`
 - Multiple rooms / matchmaking
 - Grid / tile / isometric spatial models
 - Reconnection, error recovery, input validation
-- Deployment (Railway)
 - Turborepo
 
 See [`ROADMAP.md`](./ROADMAP.md) for how these are sequenced.

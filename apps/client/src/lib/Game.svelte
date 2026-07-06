@@ -6,6 +6,8 @@
 	let container = $state<HTMLDivElement | null>(null)
 
 	onMount(() => {
+		if (tagtag.title) document.title = tagtag.title
+
 		if (!container) return
 		return runGame(container, tagtag)
 	})

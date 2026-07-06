@@ -79,3 +79,5 @@ TypeScript throughout.
   game needs to implement to plug in)
 - [`docs/ROADMAP.md`](./docs/ROADMAP.md) — what's built, what's next, and why it's sequenced that
   way
+- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — deploying the client and server together as one
+  Railway service

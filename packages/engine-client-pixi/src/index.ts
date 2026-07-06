@@ -27,8 +27,17 @@ type EntityVisual<TEntity> = {
 	entity: TEntity
 }
 
-// Hostname follows the page URL so LAN clients connect to the dev machine, not themselves.
-const getWsUrl = () => `ws://${window.location.hostname}:3000/ws`
+// In dev, the client (Vite, :5173) and server (:3000) run as separate processes, so the port is
+// hardcoded but the hostname follows the page URL (so LAN clients connect to the dev machine, not
+// themselves). In production, the server serves the built client itself (see `apps/server`), so
+// the WebSocket lives at the same origin — same host, same port, and `wss:` when the page is
+// loaded over `https:` (browsers block plain `ws:` from an `https:` page).
+const getWsUrl = () => {
+	if (import.meta.env.DEV) return `ws://${window.location.hostname}:3000/ws`
+
+	const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
+	return `${protocol}//${window.location.host}/ws`
+}
 
 // Mounts a game into `container`, connecting to the engine server and running it until the
 // returned dispose function is called (e.g. from a Svelte `onMount` cleanup).
