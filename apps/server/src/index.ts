@@ -1,5 +1,6 @@
 import { Hono } from "hono"
-import { emptySnapshot, reducer, type Action, type Snapshot } from "state"
+import { emptySnapshot, type EngineAction, type Snapshot } from "state"
+import { reducer, type Action, type Entity } from "tagtag"
 
 type SocketData = {
 	entityId: string
@@ -9,11 +10,11 @@ const app = new Hono()
 
 app.get("/", (c) => c.text("Engine server"))
 
-// Single global room — all state changes go through reducer, then broadcast.
-let snapshot: Snapshot = emptySnapshot()
+// Single global room — all state changes go through the ruleset's reducer, then broadcast.
+let snapshot: Snapshot<Entity> = emptySnapshot()
 const sockets = new Set<ServerWebSocket<SocketData>>()
 
-function apply(action: Action) {
+function apply(action: EngineAction<Action>) {
 	snapshot = reducer(snapshot, action)
 	const message = JSON.stringify(snapshot)
 

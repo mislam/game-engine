@@ -3,7 +3,8 @@
 	"private": true,
 	"workspaces": [
 		"apps/*",
-		"packages/*"
+		"packages/*",
+		"packages/rulesets/*"
 	],
 	"scripts": {
 		"dev:client": "bun run --cwd apps/client dev",
