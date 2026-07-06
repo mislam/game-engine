@@ -1,5 +1,5 @@
 {
-	"name": "state",
+	"name": "engine-server",
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
@@ -7,6 +7,10 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"engine-client": "workspace:*"
+		"hono": "^4.12.27",
+		"state": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
 	}
 }

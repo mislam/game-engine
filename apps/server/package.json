@@ -5,8 +5,7 @@
 		"dev": "bun run --hot src/index.ts"
 	},
 	"dependencies": {
-		"hono": "^4.12.27",
-		"state": "workspace:*",
+		"engine-server": "workspace:*",
 		"tagtag": "workspace:*"
 	},
 	"devDependencies": {

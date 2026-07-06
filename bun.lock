@@ -13,9 +13,7 @@
       "name": "client",
       "version": "0.0.0",
       "dependencies": {
-        "engine-client": "workspace:*",
-        "pixi.js": "^8.16.0",
-        "state": "workspace:*",
+        "engine-client-pixi": "workspace:*",
         "tagtag": "workspace:*",
       },
       "devDependencies": {
@@ -31,8 +29,7 @@
     "apps/server": {
       "name": "server",
       "dependencies": {
-        "hono": "^4.12.27",
-        "state": "workspace:*",
+        "engine-server": "workspace:*",
         "tagtag": "workspace:*",
       },
       "devDependencies": {
@@ -43,17 +40,41 @@
       "name": "engine-client",
       "version": "0.0.0",
     },
+    "packages/engine-client-pixi": {
+      "name": "engine-client-pixi",
+      "version": "0.0.0",
+      "dependencies": {
+        "engine-client": "workspace:*",
+        "pixi.js": "^8.16.0",
+        "state": "workspace:*",
+      },
+    },
+    "packages/engine-server": {
+      "name": "engine-server",
+      "version": "0.0.0",
+      "dependencies": {
+        "hono": "^4.12.27",
+        "state": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
     "packages/rulesets/tagtag": {
       "name": "tagtag",
       "version": "0.0.0",
       "dependencies": {
         "engine-client": "workspace:*",
+        "pixi.js": "^8.16.0",
         "state": "workspace:*",
       },
     },
     "packages/state": {
       "name": "state",
       "version": "0.0.0",
+      "dependencies": {
+        "engine-client": "workspace:*",
+      },
     },
   },
   "packages": {
@@ -158,6 +179,10 @@
     "earcut": ["earcut@3.2.3", "", {}, "sha512-vnS4AVwp1KHAF13i1vp1/2D5evWy3k5u/iW/B81QVsUZtV8cv2tU0b2VNFlqvh4kYwrFMDdjPCfAmfyJW9y14Q=="],
 
     "engine-client": ["engine-client@workspace:packages/engine-client"],
+
+    "engine-client-pixi": ["engine-client-pixi@workspace:packages/engine-client-pixi"],
+
+    "engine-server": ["engine-server@workspace:packages/engine-server"],
 
     "esm-env": ["esm-env@1.2.2", "", {}, "sha512-Epxrv+Nr/CaL4ZcFGPJIYLWFom+YeV1DqMLHJoEd9SYRxNbaFruBwfEX/kkHUJf55j2+TUbmDcmuilbP1TmXHA=="],
 

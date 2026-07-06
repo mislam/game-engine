@@ -10,9 +10,7 @@
 		"check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
 	},
 	"dependencies": {
-		"engine-client": "workspace:*",
-		"pixi.js": "^8.16.0",
-		"state": "workspace:*",
+		"engine-client-pixi": "workspace:*",
 		"tagtag": "workspace:*"
 	},
 	"devDependencies": {

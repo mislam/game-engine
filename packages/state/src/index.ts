@@ -1,6 +1,8 @@
 // Generic engine core — no I/O, safe to import in client and server.
 // A ruleset supplies its own entity/action shapes; this package only knows the envelope
 // (snapshot of entities, lifecycle actions, and how a reducer is wired together).
+import type { Delta, SyncConfig } from "engine-client"
+
 export type Snapshot<TEntity> = {
 	entities: Record<string, TEntity>
 }
@@ -19,20 +21,40 @@ export type Reducer<TEntity, TAction> = (
 
 export const emptySnapshot = <TEntity>(): Snapshot<TEntity> => ({ entities: {} })
 
-// Generic directional input capture — the engine owns reading keys into this shape;
-// a ruleset decides what each direction means (see `mapInput`/`predictStep` conventions).
-export type InputState = {
-	up: boolean
-	down: boolean
-	left: boolean
-	right: boolean
+// Purely mechanical: which physical keys are currently held. No semantic meaning (no "up"/
+// "down") — that interpretation is entirely a ruleset's job via `mapInput`/`predictStep`. Keys
+// are normalized via `KeyboardEvent.key.toLowerCase()` (e.g. "w", "a", "arrowup"). The engine
+// owns exactly one mutable `RawInput` per game session and passes the same reference into
+// `mapInput`/`predictStep` on every call — `ReadonlySet` is a type-level "don't mutate this from
+// a ruleset" signal, not a guarantee of a fresh object each call.
+export type RawInput = {
+	keysDown: ReadonlySet<string>
 }
 
-// How a ruleset wants a given entity drawn. Kept intentionally minimal for now —
-// extend as more rulesets need more than a colored circle.
-export type EntityAppearance = {
-	color: number
-	radius: number
+// The full plugin boundary a ruleset implements, bundled into one object (ROADMAP.md 3.1) so
+// engine packages (engine-server, engine-client-pixi, added in 3.2/3.3) can take "a ruleset" as
+// a single parameter instead of a grab-bag of named imports. `TGraphics` defaults to `unknown`
+// here so this package never needs a Pixi dependency; `engine-client-pixi` (and any ruleset it
+// hosts) specialize it to Pixi's real `Graphics` type. See ENGINE_API.md for the full contract.
+export type Ruleset<TEntity, TAction, TGraphics = unknown> = {
+	createEntity: (entityId: string) => TEntity
+	reducer: Reducer<TEntity, TAction>
+
+	// Given a Graphics-like object (already positioned by the engine, already cleared), draw
+	// this entity into it. Called once per entity every time a snapshot arrives (server broadcast
+	// cadence), not every rendered frame. Must be idempotent: safe to call repeatedly with the
+	// same entity. This is a documented, scoped exception to "ruleset never touches Pixi" — see
+	// ENGINE_API.md -> "Where the Pixi exception lives".
+	draw: (graphics: TGraphics, entity: TEntity, isLocal: boolean) => void
+
+	// Interpret raw input into a wire action (called at the network tick rate), or null if idle.
+	mapInput: (input: RawInput, entityId: string) => TAction | null
+
+	// Interpret raw input into a local per-frame displacement (called every rendered frame).
+	predictStep: (input: RawInput, dt: number) => Delta
+
+	// Optional — engine has defaults for every field.
+	sync?: Partial<SyncConfig>
 }
 
 // Wraps a ruleset's reducer with default JOIN/LEAVE handling, so a ruleset only

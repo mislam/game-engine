@@ -160,6 +160,19 @@ Reverses the Phase 1 deviation of using separate named exports. Needed so `start
 (3.2/3.3) can take "a ruleset" as a single parameter. `tagtag` exports one `Ruleset<Entity,
 Action>` object instead of five named exports.
 
+✅ Done: `packages/state` now exports a `Ruleset<TEntity, TAction>` type (`createEntity`,
+`reducer`, `renderEntity`, `mapInput`, `predictStep`, `sync` — still today's v1 field shapes;
+3.4/3.5 will evolve `renderEntity`/`mapInput`/`predictStep`'s signatures without touching this
+bundling). `state` now depends on `engine-client` (for the `sync` field's `SyncConfig` type) —
+the first cross-package dependency between the two, still with no cycle since `engine-client`
+depends on nothing. `tagtag` exports a single `tagtag: Ruleset<Entity, Action>` object; its five
+functions are no longer individually exported (only `Entity`/`Action` types still are, needed by
+`apps/server` until 3.2 makes the server generic over the ruleset's types). `apps/server` and
+`Game.svelte` updated to call `tagtag.reducer`/`tagtag.mapInput`/`tagtag.predictStep`/
+`tagtag.renderEntity`/`tagtag.sync` instead of five separate imports. Verified: typecheck clean,
+server+client boot, and the two-client WebSocket smoke test (join, move, reject foreign MOVE,
+leave) still passes unchanged.
+
 ### 3.2 Add `packages/engine-server`
 
 New package: `startServer(ruleset, options?)` owns `Bun.serve`, Hono, WebSocket, room state, and
@@ -169,11 +182,37 @@ the broadcast loop — everything currently in `apps/server/src/index.ts` except
 today's values so behavior doesn't change). `apps/server` shrinks to a 3-line composition root
 that imports `engine-server` + a concrete ruleset and calls `startServer(ruleset)`.
 
+✅ Done: new `packages/engine-server` owns `Bun.serve`, Hono, WebSocket upgrade, room state
+(single global snapshot), and the broadcast loop, exactly as `apps/server/src/index.ts` did
+before. `startServer<TEntity, TAction>(ruleset, options?)` takes only the `reducer` field off the
+ruleset (the only piece the server ever touches — `createEntity` is already wrapped into it via
+`createReducer`); `options` is `{ port?: number; hostname?: string }`, defaulting to `3000`/
+`"0.0.0.0"` to match prior behavior exactly. The server no longer special-cases `"MOVE"` — it
+generically rejects any client-sent `JOIN`/`LEAVE` (those are engine-issued only) and any action
+targeting an entity the sender doesn't own, so a differently-shaped ruleset's actions aren't
+rejected by an engine-owned type check. `apps/server/src/index.ts` is now 3 lines: import
+`startServer` from `engine-server`, import `tagtag`, call `startServer(tagtag)`. Its
+`package.json` now depends only on `engine-server` + `tagtag` (no more direct `hono`/`state`
+deps). Verified: typecheck clean, server+client boot, and the two-client WebSocket smoke test
+(join, move, reject foreign MOVE, leave) still passes unchanged.
+
 ### 3.3 Add `packages/engine-client-pixi`
 
 New package: `runGame(container, ruleset) -> dispose()` owns the Pixi `Application`, WebSocket
 client, ticker loop, and raw key capture — everything currently in `Game.svelte` except "which
 ruleset." `Game.svelte` shrinks to mounting `runGame(container, ruleset)` in `onMount`.
+
+✅ Done: new `packages/engine-client-pixi` owns the Pixi `Application` lifecycle, WebSocket
+connection, per-entity `Graphics` bookkeeping, the ticker loop (predict/reconcile/pursue via
+`engine-client`), and WASD key capture — exactly what `Game.svelte` did before, moved verbatim
+into `runGame<TEntity, TAction>(container, ruleset) -> dispose()`. `TEntity` is constrained to
+`{x, y}` (matching `engine-client`'s position-based sync, unchanged in this slice) and `TAction`
+to `{type, entityId}` (matching the wire protocol). `Game.svelte` is now 12 lines: mounts
+`runGame(container, tagtag)` in `onMount` and returns its `dispose` as the cleanup function.
+`apps/client/package.json` now depends only on `engine-client-pixi` + `tagtag` (no more direct
+`engine-client`/`state`/`pixi.js` deps). Verified: typecheck clean, server+client boot, a browser
+screenshot shows the local dot rendering correctly, and the two-client WebSocket smoke test
+(join, move, reject foreign MOVE, leave) still passes unchanged.
 
 ### 3.4 Replace `InputState` with `RawInput`
 
@@ -182,6 +221,19 @@ ruleset." `Game.svelte` shrinks to mounting `runGame(container, ruleset)` in `on
 moves entirely into the ruleset's `mapInput`/`predictStep` — the engine no longer assumes
 directional movement is a thing every game has.
 
+✅ Done: `packages/state` now exports `RawInput` (`{ keysDown: ReadonlySet<string> }`) instead of
+`InputState`; `Ruleset.mapInput`/`Ruleset.predictStep` both take `RawInput`. `engine-client-pixi`
+no longer maps physical keys to directions at all — it just tracks a raw `Set<string>` of held
+keys (normalized via `.toLowerCase()`) on `keydown`/`keyup`, and (unlike the old per-key WASD
+switch) no longer calls `preventDefault`, since the engine has no way to know which keys a given
+ruleset cares about; browser shortcuts on unused keys keep working. `tagtag` now owns its own
+`KEY_UP`/`KEY_DOWN`/`KEY_LEFT`/`KEY_RIGHT` ("w"/"s"/"a"/"d") constants and reads them off
+`input.keysDown` inside `getDirection`, used by both `mapInput` and `predictStep`. Verified:
+typecheck clean, server+client boot, a browser test holding "d" moved the local dot right (probe
+WebSocket confirmed the server-side entity moved from `x:0` to `x:636`, rendered position tracked
+via pursuit), and the two-client WebSocket smoke test (join, move, reject foreign MOVE, leave)
+still passes unchanged.
+
 ### 3.5 Replace `EntityAppearance` with a `draw` hook
 
 Remove the declarative `{color, radius}` descriptor. The ruleset gets a real Pixi `Graphics`
@@ -189,6 +241,19 @@ object (already positioned by the engine) and draws into it directly — a scope
 exception to "ruleset never touches Pixi" (see `ENGINE_API.md` → "Where the Pixi exception
 lives"). This is what makes rendering genuinely shape-agnostic instead of assuming every entity
 is a colored circle.
+
+✅ Done: `packages/state`'s `Ruleset` type gained a `TGraphics` type parameter (defaults to
+`unknown`, so `state` still never imports Pixi) and replaced the `renderEntity`/`EntityAppearance`
+field with `draw: (graphics: TGraphics, entity: TEntity, isLocal: boolean) => void`; the
+`EntityAppearance` type is removed entirely. `engine-client-pixi` now calls `graphics.clear()`
+itself immediately before `ruleset.draw(...)` (so a ruleset's `draw` never needs to clear), and
+specializes `Ruleset<TEntity, TAction, Graphics>` with Pixi's real `Graphics` type. `tagtag`
+exports `draw(graphics, _entity, isLocal)`, drawing a circle + fill directly onto the given
+`Graphics` — its only Pixi import, type-only, matching "Where the Pixi exception lives." Verified:
+typecheck clean, server+client boot, and a browser test showed both the local dot (green,
+radius 16, drawn via `draw`) and a remote dot (blue, radius 12, moved via a raw WebSocket client)
+rendering correctly; the two-client WebSocket smoke test (join, move, reject foreign MOVE, leave)
+still passes unchanged.
 
 ### 3.6 Rewire `apps/server` and `apps/client` as thin composition roots
 
@@ -202,6 +267,20 @@ nor `packages/engine-server` import or reference `tagtag` (or any ruleset) anywh
 remains a single small file with zero Pixi/WebSocket/Bun imports beyond the one documented
 `Graphics`-drawing exception in `draw`. `apps/server` and `apps/client` are each just a few lines
 wiring one ruleset into the engine.
+
+✅ Done: `apps/server/src/index.ts` (3 lines) and `Game.svelte` (12 lines) already reached this
+minimal form as a natural side effect of 3.2/3.3 — this slice was mostly verification. Confirmed
+by temporarily adding a second, deliberately different throwaway ruleset (`stub`: arrow-key
+movement, square sprites, no `sync` override) and swapping both apps to boot it by changing
+exactly one import line each (`tagtag` → `stub`) with zero edits under `packages/engine-*`;
+typecheck passed, and a WebSocket-level smoke test confirmed `stub`'s reducer/`MOVE` action
+worked identically through the unmodified `engine-server`, and a browser screenshot showed its
+orange/yellow squares rendering via the unmodified `engine-client-pixi`. Reverted the swap and
+deleted the throwaway `stub` package after verifying (kept out of the repo — it was a disposable
+test fixture, not a second real ruleset). `packages/state`/`engine-client`/`engine-client-pixi`/
+`engine-server` contain zero references to `tagtag`, confirmed by grep. Verified: typecheck
+clean, server+client boot with `tagtag` restored, and the two-client WebSocket smoke test (join,
+move, reject foreign MOVE, leave) still passes unchanged. **Phase 3 is complete.**
 
 ---
 
@@ -284,12 +363,12 @@ below, and commit before starting the next one.
 - [x] 1.5
 - [x] 2.1
 - [x] 2.2
-- [ ] 3.1
-- [ ] 3.2
-- [ ] 3.3
-- [ ] 3.4
-- [ ] 3.5
-- [ ] 3.6
+- [x] 3.1
+- [x] 3.2
+- [x] 3.3
+- [x] 3.4
+- [x] 3.5
+- [x] 3.6
 - [ ] 4.1
 - [ ] 4.2
 - [ ] 5.1

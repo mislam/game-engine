@@ -8,6 +8,7 @@
 	},
 	"dependencies": {
 		"engine-client": "workspace:*",
+		"pixi.js": "^8.16.0",
 		"state": "workspace:*"
 	}
 }

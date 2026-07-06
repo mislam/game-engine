@@ -1,13 +1,12 @@
 # Engine ↔ Ruleset Contract
 
-> **Status: NOT YET IMPLEMENTED.** Everything below describes the target design for
-> `ROADMAP.md` Phase 3 ("Full engine/game agnosticism"), which is planned but not built. The
-> code as it exists today still matches the **v1** design (see **History** at the bottom) — i.e.
-> `README.md`'s "How it works" section, current `packages/state` (`InputState`,
-> `EntityAppearance`), and `tagtag`'s five separate named exports are all still accurate to
-> what's actually in the repo right now. Do not assume `RawInput`, `draw`, `Ruleset` objects,
-> `packages/engine-server`, or `packages/engine-client-pixi` exist yet — implementing them is
-> exactly what Phase 3 (`ROADMAP.md`) is for.
+> **Status: IMPLEMENTED.** `ROADMAP.md` Phase 3 ("Full engine/game agnosticism") is done — the
+> code as it exists today matches everything below (the **v2** design). `RawInput`, the `draw`
+> hook, the bundled `Ruleset<TEntity, TAction, TGraphics>` object, `packages/engine-server`, and
+> `packages/engine-client-pixi` all exist and are wired up exactly as described. See
+> `README.md`'s "How it works" section for a code-accurate walkthrough of the current packages.
+> The **v1** design (separate named exports, `InputState`, `EntityAppearance`) is no longer in
+> the repo — see **History** at the bottom for what changed and why.
 
 This is the plugin boundary referenced by `ROADMAP.md`. This document describes the v2
 contract, which fixes two gaps found by reviewing the v1 contract (Phase 1–2) against real code:

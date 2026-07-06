@@ -1,5 +1,5 @@
 {
-	"name": "state",
+	"name": "engine-client-pixi",
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
@@ -7,6 +7,8 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"engine-client": "workspace:*"
+		"engine-client": "workspace:*",
+		"pixi.js": "^8.16.0",
+		"state": "workspace:*"
 	}
 }
