@@ -1,5 +1,5 @@
 // Generic client-side sync: local prediction, authority reconciliation, and remote-entity
-// interpolation. No knowledge of any specific game lives here — see ENGINE_API.md.
+// interpolation. No knowledge of any specific game lives here — see docs/ENGINE_API.md.
 
 export type SyncConfig = {
 	inputIntervalMs: number // client -> server send rate (ms)

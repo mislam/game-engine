@@ -5,7 +5,8 @@ ships independently, keeps the app runnable end-to-end, and de-risks the slice a
 start a slice out of order — later ones assume earlier boundaries exist.
 
 Each slice should end with: app still runs (`bun run dev:server` + `bun run dev:client`), demo
-still playable, README/this file updated to reflect new state.
+still playable, this file and [`ARCHITECTURE.md`](./ARCHITECTURE.md) updated to reflect new
+state.
 
 ## Guiding principle: game code stays simple and DX-friendly
 
@@ -343,7 +344,8 @@ will still change.
 
 ## Explicitly not scheduled yet
 
-Carried over from README, still correctly out of scope until a real second game demands them:
+Carried over from [`ARCHITECTURE.md`](./ARCHITECTURE.md), still correctly out of scope until a
+real second game demands them:
 
 - Grid/tile/isometric spatial models (a second ruleset will tell us what's actually needed)
 - Matchmaking/lobby UI beyond "pick a room ID"
@@ -352,8 +354,8 @@ Carried over from README, still correctly out of scope until a real second game 
 ## How to use this file
 
 Work top to bottom, one numbered slice at a time. After finishing a slice: verify the demo still
-runs, update README's "Current state" table if the package layout changed, check off the slice
-below, and commit before starting the next one.
+runs, update [`ARCHITECTURE.md`](./ARCHITECTURE.md)'s package layout table if it changed, check
+off the slice below, and commit before starting the next one.
 
 - [x] 0.1
 - [x] 1.1

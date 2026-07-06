@@ -31,11 +31,11 @@ export type RawInput = {
 	keysDown: ReadonlySet<string>
 }
 
-// The full plugin boundary a ruleset implements, bundled into one object (ROADMAP.md 3.1) so
+// The full plugin boundary a ruleset implements, bundled into one object (docs/ROADMAP.md 3.1) so
 // engine packages (engine-server, engine-client-pixi, added in 3.2/3.3) can take "a ruleset" as
 // a single parameter instead of a grab-bag of named imports. `TGraphics` defaults to `unknown`
 // here so this package never needs a Pixi dependency; `engine-client-pixi` (and any ruleset it
-// hosts) specialize it to Pixi's real `Graphics` type. See ENGINE_API.md for the full contract.
+// hosts) specialize it to Pixi's real `Graphics` type. See docs/ENGINE_API.md for the full contract.
 export type Ruleset<TEntity, TAction, TGraphics = unknown> = {
 	createEntity: (entityId: string) => TEntity
 	reducer: Reducer<TEntity, TAction>
@@ -44,7 +44,7 @@ export type Ruleset<TEntity, TAction, TGraphics = unknown> = {
 	// this entity into it. Called once per entity every time a snapshot arrives (server broadcast
 	// cadence), not every rendered frame. Must be idempotent: safe to call repeatedly with the
 	// same entity. This is a documented, scoped exception to "ruleset never touches Pixi" — see
-	// ENGINE_API.md -> "Where the Pixi exception lives".
+	// docs/ENGINE_API.md -> "Where the Pixi exception lives".
 	draw: (graphics: TGraphics, entity: TEntity, isLocal: boolean) => void
 
 	// Interpret raw input into a wire action (called at the network tick rate), or null if idle.
@@ -52,6 +52,20 @@ export type Ruleset<TEntity, TAction, TGraphics = unknown> = {
 
 	// Interpret raw input into a local per-frame displacement (called every rendered frame).
 	predictStep: (input: RawInput, dt: number) => Delta
+
+	// Optional — when set, the Pixi client centers this world rectangle in the viewport.
+	worldSize?: { width: number; height: number }
+
+	// Optional — displayed above the arena (requires `worldSize` for positioning).
+	title?: string
+
+	// Optional — given an entity's previous state (undefined if it just joined) and current
+	// state, return a sound asset URL to play, or null. Called once per entity every time a
+	// snapshot arrives (not every rendered frame), for every entity (not just the local one) —
+	// so every client hears the same shared events. A ruleset detects "what happened" itself by
+	// diffing prev/next (e.g. a boolean flag turning true); the engine has no notion of what any
+	// transition means, it only knows how to load and play an audio URL.
+	sound?: (next: TEntity, prev: TEntity | undefined, isLocal: boolean) => string | null
 
 	// Optional — engine has defaults for every field.
 	sync?: Partial<SyncConfig>

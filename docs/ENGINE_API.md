@@ -4,7 +4,7 @@
 > code as it exists today matches everything below (the **v2** design). `RawInput`, the `draw`
 > hook, the bundled `Ruleset<TEntity, TAction, TGraphics>` object, `packages/engine-server`, and
 > `packages/engine-client-pixi` all exist and are wired up exactly as described. See
-> `README.md`'s "How it works" section for a code-accurate walkthrough of the current packages.
+> [`ARCHITECTURE.md`](./ARCHITECTURE.md) for a code-accurate walkthrough of the current packages.
 > The **v1** design (separate named exports, `InputState`, `EntityAppearance`) is no longer in
 > the repo — see **History** at the bottom for what changed and why.
 
@@ -60,6 +60,18 @@ type Ruleset<TEntity, TAction> = {
 	// Interpret raw input into a local per-frame displacement (called every rendered frame).
 	predictStep: (input: RawInput, dt: number) => Delta
 
+	// Optional — when set, the Pixi client centers this world rectangle in the viewport, and
+	// (if `title` is also set) shows a heading above it.
+	worldSize?: { width: number; height: number }
+	title?: string
+
+	// Optional — given an entity's previous state (undefined if it just joined) and current
+	// state, return a sound asset URL to play, or null. Called for every entity every time a
+	// snapshot arrives (not just the local one, and not every rendered frame), so a ruleset
+	// detects "what happened" by diffing prev/next itself — the engine has no notion of what any
+	// transition means, it only knows how to load and play a URL.
+	sound?: (next: TEntity, prev: TEntity | undefined, isLocal: boolean) => string | null
+
 	// Optional — engine has defaults for every field.
 	sync?: Partial<SyncConfig>
 }
@@ -109,7 +121,8 @@ entity looks like" at all, it just hands over something to draw into.
 unchanged, still in `packages/engine-client` (already implemented — see that package's source for
 the exact shapes; `Ruleset.predictStep`'s return type and `Ruleset.sync`'s type both come from
 there). The wire protocol itself (`WELCOME`, full-`Snapshot`-JSON broadcast, `ws://<host>:3000/ws`)
-is unchanged from v1 — see `README.md`'s "Wire protocol" section for the exact message shapes.
+is unchanged from v1 — see [`ARCHITECTURE.md`](./ARCHITECTURE.md)'s "Wire protocol" section for
+the exact message shapes.
 
 ## Where the Pixi exception lives
 

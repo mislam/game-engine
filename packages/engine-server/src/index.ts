@@ -1,6 +1,6 @@
 // Generic multiplayer server: WebSocket transport, wire protocol, connection lifecycle, and the
 // single-room snapshot/broadcast loop. Owns everything except "which ruleset" — that's a
-// parameter, not an import. See ENGINE_API.md for the engine/ruleset contract.
+// parameter, not an import. See docs/ENGINE_API.md for the engine/ruleset contract.
 import { Hono } from "hono"
 import { emptySnapshot, type EngineAction, type Ruleset, type Snapshot } from "state"
 
