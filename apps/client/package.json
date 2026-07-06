@@ -9,6 +9,10 @@
 		"preview": "vite preview",
 		"check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
 	},
+	"dependencies": {
+		"pixi.js": "^8.16.0",
+		"state": "workspace:*"
+	},
 	"devDependencies": {
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tsconfig/svelte": "^5.0.8",
